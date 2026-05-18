@@ -5,116 +5,69 @@ export type User = {
   name: string;
   email: string;
   role: Role;
-  departmentId: string;
-  employeeId: string;
-  avatar?: string;
+  employeeId?: string;
 };
 
 export type Department = {
   id: string;
   name: string;
-  managerId: string;
-  headcount: number;
+  managerId?: string;
+};
+
+export type Employee = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  departmentId: string;
+  positionId?: string;
+  position?: string;
+  jobTitle?: string;
+  managerId?: string;
+  hireDate: string;
+  baseSalary: number;
+  employmentStatus: 'active' | 'inactive' | 'on_leave' | 'terminated';
+  avatarUrl?: string;
+  address?: string;
+  emergencyContact?: {
+    name: string;
+    relationship: string;
+    phone: string;
+  };
 };
 
 export type Position = {
   id: string;
   title: string;
   departmentId: string;
-  level: string;
+  level?: string;
 };
-
-export type EmploymentStatus = 'active' | 'inactive' | 'on_leave' | 'terminated';
-
-export type Employee = {
-  id: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  dateOfBirth: string;
-  gender: string;
-  nationalId: string;
-  departmentId: string;
-  positionId: string;
-  managerId: string;
-  employmentStatus: EmploymentStatus;
-  startDate: string;
-  endDate?: string;
-  baseSalary: number;
-  bankAccount: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
-  emergencyContactRelation: string;
-  avatar?: string;
-};
-
-export type LeaveType = {
-  id: string;
-  name: string;
-  daysAllowed: number;
-  color: string;
-};
-
-export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
 export type LeaveRequest = {
   id: string;
   employeeId: string;
-  leaveTypeId: string;
+  leaveType: string;
   startDate: string;
   endDate: string;
   days: number;
-  reason: string;
-  status: LeaveStatus;
-  approvedById?: string;
-  approvedAt?: string;
+  reason?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  approverId?: string;
   createdAt: string;
-  notes?: string;
-};
-
-export type LeaveBalance = {
-  employeeId: string;
-  leaveTypeId: string;
-  total: number;
-  used: number;
-  remaining: number;
-};
-
-export type PayrollStatus = 'draft' | 'approved' | 'paid';
-
-export type PayrollRun = {
-  id: string;
-  period: string;
-  startDate: string;
-  endDate: string;
-  status: PayrollStatus;
-  totalGross: number;
-  totalNet: number;
-  totalTax: number;
-  totalDeductions: number;
-  createdById: string;
-  approvedById?: string;
-  createdAt: string;
-  paidAt?: string;
+  updatedAt?: string;
 };
 
 export type PayrollRecord = {
   id: string;
-  payrollRunId: string;
   employeeId: string;
-  baseSalary: number;
-  allowances: number;
-  bonus: number;
-  grossSalary: number;
-  taxAmount: number;
-  pensionEmployee: number;
-  pensionEmployer: number;
-  otherDeductions: number;
-  netSalary: number;
-  taxBracket: string;
+  payPeriodStart: string;
+  payPeriodEnd: string;
+  grossPay: number;
+  deductions: number;
+  netPay: number;
+  payDate?: string;
+  createdAt?: string;
 };
 
 export type AuditLog = {
@@ -123,16 +76,24 @@ export type AuditLog = {
   action: string;
   entity: string;
   entityId: string;
-  details: string;
-  timestamp: string;
+  details?: string;
+  createdAt: string;
 };
 
-export type Notification = {
-  id: string;
-  userId: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  read: boolean;
-  createdAt: string;
-  link?: string;
+export type Settings = {
+  companyName: string;
+  currency: string;
+  timezone: string;
+  workingHoursPerDay: number;
+  leaveTypes: string[];
+};
+
+export type HRState = {
+  employees: Employee[];
+  departments: Department[];
+  positions: Position[];
+  leaveRequests: LeaveRequest[];
+  payrollRecords: PayrollRecord[];
+  auditLogs: AuditLog[];
+  settings: Settings;
 };

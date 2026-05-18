@@ -1,58 +1,66 @@
 import { useState } from 'react';
 import { useHR } from '@/context/HRContext';
-import { useAuth } from '@/hooks/useAuth';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import Table from '@/components/ui/Table';
-import Select from '@/components/ui/Select';
-import StatCard from '@/components/ui/StatCard';
-import { DollarSign, Users, CheckCircle, Clock } from 'lucide-react';
+import Badge from '@/components/ui/Badge';
+import { Employee, PayrollRecord } from '@/types';
 
 export default function PayrollPage() {
-  const { payrollRecords, employees, processPayroll } = useHR();
-  const { currentUser } = useAuth();
-  const [filterPeriod, setFilterPeriod] = useState('');
+  const { employees, payrollRecords } = useHR();
+  const [search, setSearch] = useState('');
 
-  const canProcess = currentUser?.role === 'admin' || currentUser?.role === 'hr_manager';
+  const filtered = payrollRecords.filter(p => {
+    const emp = employees.find(e => e.id === p.employeeId);
+    const fullName = emp ? `${emp.firstName} ${emp.lastName}` : '';
+    return fullName.toLowerCase().includes(search.toLowerCase());
+  });
 
-  const periods = Array.from(new Set(payrollRecords.map(p => p.period))).sort().reverse();
-  const filtered = payrollRecords.filter(p => !filterPeriod || p.period === filterPeriod);
+  const getName = (id: string) => {
+    const emp = employees.find(e => e.id === id);
+    return emp ? `${emp.firstName} ${emp.lastName}` : 'Unknown';
+  };
 
-  const getName = (id: string) => employees.find(e => e.id === id)?.name || 'Unknown';
+  const totalGross = filtered.reduce((s, p) => s + (p.grossPay ?? 0), 0);
+  const totalNet = filtered.reduce((s, p) => s + (p.netPay ?? 0), 0);
+  const paid = filtered.filter(p => (p as any).status === 'paid').length;
+  const pending = filtered.filter(p => (p as any).status === 'pending').length;
 
-  const totalGross = filtered.reduce((s, p) => s + p.grossPay, 0);
-  const totalNet = filtered.reduce((s, p) => s + p.netPay, 0);
-  const paid = filtered.filter(p => p.status === 'paid').length;
-  const pending = filtered.filter(p => p.status === 'pending').length;
+  const columns = ['Employee', 'Period', 'Gross Pay', 'Deductions', 'Net Pay', 'Status'];
+
+  const rows = filtered.map(p => [
+    getName(p.employeeId),
+    (p as any).period ?? p.payPeriodStart + ' - ' + p.payPeriodEnd,
+    `$${(p.grossPay ?? 0).toLocaleString()}`,
+    `$${(p.deductions ?? 0).toLocaleString()}`,
+    `$${(p.netPay ?? 0).toLocaleString()}`,
+    <Badge
+      key={p.id}
+      label={(p as any).status ?? 'paid'}
+      variant={(p as any).status === 'pending' ? 'warning' : 'success'}
+    />,
+  ]);
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700 }}>Payroll</h2>
-        {canProcess && <Button onClick={() => processPayroll()}>Process Payroll</Button>}
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>Payroll</h2>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
-        <StatCard title="Total Gross" value={`$${totalGross.toLocaleString()}`} icon={<DollarSign size={22} />} color="primary" />
-        <StatCard title="Total Net" value={`$${totalNet.toLocaleString()}`} icon={<DollarSign size={22} />} color="success" />
-        <StatCard title="Paid" value={String(paid)} icon={<CheckCircle size={22} />} color="success" />
-        <StatCard title="Pending" value={String(pending)} icon={<Clock size={22} />} color="warning" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+        <Card><div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Total Gross</div><div style={{ fontSize: 22, fontWeight: 700 }}>${totalGross.toLocaleString()}</div></Card>
+        <Card><div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Total Net</div><div style={{ fontSize: 22, fontWeight: 700 }}>${totalNet.toLocaleString()}</div></Card>
+        <Card><div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Paid</div><div style={{ fontSize: 22, fontWeight: 700 }}>{paid}</div></Card>
+        <Card><div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Pending</div><div style={{ fontSize: 22, fontWeight: 700 }}>{pending}</div></Card>
       </div>
       <Card>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          <Select value={filterPeriod} onChange={e => setFilterPeriod(e.target.value)} options={[{ value: '', label: 'All Periods' }, ...periods.map(p => ({ value: p, label: p }))]} />
+        <div style={{ marginBottom: 12 }}>
+          <input
+            placeholder="Search employee..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, width: 240 }}
+          />
         </div>
-        <Table
-          headers={['Employee', 'Period', 'Gross Pay', 'Deductions', 'Net Pay', 'Status']}
-          rows={filtered.map(p => [
-            getName(p.employeeId),
-            p.period,
-            `$${p.grossPay.toLocaleString()}`,
-            `$${p.deductions.toLocaleString()}`,
-            `$${p.netPay.toLocaleString()}`,
-            <Badge label={p.status} variant={p.status === 'paid' ? 'success' : 'warning'} />
-          ])}
-        />
+        <Table columns={columns} rows={rows} />
       </Card>
     </div>
   );
