@@ -6,22 +6,19 @@ type ModalProps = {
   title: string;
   children: ReactNode;
   onClose: () => void;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  footer?: ReactNode;
 };
 
-export default function Modal({ title, children, onClose, size = 'md' }: ModalProps) {
+export default function Modal({ title, children, onClose, footer }: ModalProps) {
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={`${styles.modal} ${styles[size]}`} onClick={e => e.stopPropagation()}>
+    <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={styles.modal}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <button className={styles.closeBtn} onClick={onClose}>
-            <X size={18} />
-          </button>
+          <span className={styles.title}>{title}</span>
+          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
         </div>
-        <div className={styles.body}>
-          {children}
-        </div>
+        <div className={styles.body}>{children}</div>
+        {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </div>
   );

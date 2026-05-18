@@ -3,30 +3,20 @@ import styles from '@/components/ui/StatCard.module.css';
 
 type StatCardProps = {
   title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: ReactNode;
-  iconBg?: string;
-  trend?: { value: string; up: boolean };
+  value: string;
+  icon?: ReactNode;
+  color?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
+  sub?: string;
 };
 
-export default function StatCard({ title, value, subtitle, icon, iconBg, trend }: StatCardProps) {
+export default function StatCard({ title, value, icon, color = 'primary', sub }: StatCardProps) {
   return (
     <div className={styles.card}>
-      <div className={styles.top}>
-        <div className={styles.info}>
-          <p className={styles.title}>{title}</p>
-          <p className={styles.value}>{value}</p>
-          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
-          {trend && (
-            <p className={`${styles.trend} ${trend.up ? styles.trendUp : styles.trendDown}`}>
-              {trend.up ? '↑' : '↓'} {trend.value}
-            </p>
-          )}
-        </div>
-        <div className={styles.iconWrap} style={iconBg ? { background: iconBg } : {}}>
-          {icon}
-        </div>
+      {icon && <div className={`${styles.icon} ${styles[color]}`}>{icon}</div>}
+      <div className={styles.content}>
+        <div className={styles.title}>{title}</div>
+        <div className={styles.value}>{value}</div>
+        {sub && <div className={styles.sub}>{sub}</div>}
       </div>
     </div>
   );
